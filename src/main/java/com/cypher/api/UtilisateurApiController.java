@@ -15,6 +15,7 @@ import com.cypher.config.JwtUtil;
 import com.cypher.exception.UtilisateurNotFoundException;
 import com.cypher.model.User;
 import com.cypher.repository.UserRepository;
+import com.cypher.request.AuthRequest;
 import com.cypher.request.RegisterRequest;
 import com.cypher.response.AuthResponse;
 import com.cypher.response.EntropyResponse;
@@ -36,7 +37,7 @@ public class UtilisateurApiController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/auth")
-    public AuthResponse auth(@Valid @RequestBody RegisterRequest request) {
+    public AuthResponse auth(@Valid @RequestBody AuthRequest request) {
         try {
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
