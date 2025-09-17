@@ -31,7 +31,7 @@ jobs:
           password: ${{ secrets.TOKEN }}
 
       - name: Build Docker image with Maven JAR
-        run: docker build -f Dockerfile --build-arg JAR_FILE=target/*.jar -t ghcr.io/TPCypher/back/app:latest .
+        run: docker build -f Dockerfile --build-arg JAR_FILE=target/*.jar -t ghcr.io/tpcypher/back/app:latest .
 
       - name: Push Docker image
-        run: docker push ghcr.io/TPCypher/back/app:latest
+        run: docker push ghcr.io/tpcypher/back/app:latest
