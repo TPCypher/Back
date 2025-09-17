@@ -16,6 +16,7 @@ import com.cypher.exception.UtilisateurNotFoundException;
 import com.cypher.model.User;
 import com.cypher.repository.UserRepository;
 import com.cypher.request.RegisterRequest;
+import com.cypher.response.AuthResponse;
 import com.cypher.response.UserResponse;
 
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ public class UtilisateurApiController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/auth")
-    public UserResponse auth(@Valid @RequestBody RegisterRequest request) {
+    public AuthResponse auth(@Valid @RequestBody RegisterRequest request) {
         try {
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
@@ -42,12 +43,11 @@ public class UtilisateurApiController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Optional<Utilisateur> identifiant = this.repository.findByUsername(request.getUsername());
             String token = JwtUtil.generate(this.repository.findByUsername(request.getUsername()).orElseThrow(UtilisateurNotFoundException::new));
 
             log.debug("Token *** généré!");
 
-         return UserResponse.builder()
+         return AuthResponse.builder()
                 .success(true)
                 .token(token)
                 .build()
@@ -55,7 +55,7 @@ public class UtilisateurApiController {
         }
 
         catch (BadCredentialsException e) {
-            return UserResponse.builder()
+            return AuthResponse.builder()
                 .success(false)
                 .build()
             ;
@@ -64,7 +64,7 @@ public class UtilisateurApiController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse create(@Valid @RequestBody RegisterRequest request) {
+    public AuthResponse create(@Valid @RequestBody RegisterRequest request) {
         User user = new User();
 
         BeanUtils.copyProperties(request, user);
@@ -73,7 +73,23 @@ public class UtilisateurApiController {
 
         this.repository.save(user);
 
+        return this.convertAuth(user);
+    }
+
+    @GetMapping("/get")
+    @PreAuthorize("isAuthenticated()")
+    public UserResponse get() {
+        String userid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("utilisateurid: " + userid);
+        User user = this.repository.findById(userid).orElseThrow(UtilisateurNotFoundException::new);
         return this.convertInfo(user);
+    }
+
+
+    private AuthResponse convertAuth(User user) {
+        AuthResponse response = AuthResponse.builder().build();
+        BeanUtils.copyProperties(user, response);
+        return response;
     }
 
     private UserResponse convertInfo(User user) {
