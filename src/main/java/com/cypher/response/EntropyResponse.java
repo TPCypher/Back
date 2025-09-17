@@ -6,9 +6,8 @@ import lombok.Setter;
 
 @Getter @Setter
 @Builder
-public class AuthResponse {
+public class EntropyResponse {
     private boolean success;
     private String message;
-    private String token;
 
 }

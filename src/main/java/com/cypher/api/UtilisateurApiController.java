@@ -17,6 +17,7 @@ import com.cypher.model.User;
 import com.cypher.repository.UserRepository;
 import com.cypher.request.RegisterRequest;
 import com.cypher.response.AuthResponse;
+import com.cypher.response.EntropyResponse;
 import com.cypher.response.UserResponse;
 
 import jakarta.validation.Valid;
@@ -68,12 +69,24 @@ public class UtilisateurApiController {
         User user = new User();
 
         BeanUtils.copyProperties(request, user);
-
+        if (this.repository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Le nom d'utilisateur est déjà pris.");
+        }
+        EntropyResponse entropy = this.isPasswordStrong(request.getPassword());
+        if (!entropy.isSuccess()) {
+            return AuthResponse.builder()
+                .success(false)
+                .message(entropy.getMessage())
+                .build();
+        }
         user.setPassword(this.passwordEncoder.encode(request.getPassword()));
 
         this.repository.save(user);
 
-        return this.convertAuth(user);
+        return AuthResponse.builder()
+            .success(true)
+            .message("Utilisateur créé avec succès.")
+            .build();
     }
 
     @GetMapping("/get")
@@ -86,15 +99,38 @@ public class UtilisateurApiController {
     }
 
 
-    private AuthResponse convertAuth(User user) {
-        AuthResponse response = AuthResponse.builder().build();
+    private UserResponse convertInfo(User user) {
+        UserResponse response = UserResponse.builder().build();
         BeanUtils.copyProperties(user, response);
         return response;
     }
 
-    private UserResponse convertInfo(User user) {
-        UserResponse response = UserResponse.builder().build();
-        BeanUtils.copyProperties(user, response);
+    private EntropyResponse isPasswordStrong(String password) {
+
+        EntropyResponse response = EntropyResponse.builder().build();
+
+        if (password == null || password.isEmpty()) {
+            response.setSuccess(false);
+            response.setMessage("Le mot de passe est trop faible.");
+            return response;
+        } 
+
+        int R = 0;
+        if (password.matches(".*[a-z].*")) R += 26;
+        if (password.matches(".*[A-Z].*")) R += 26;
+        if (password.matches(".*[0-9].*")) R += 10;
+        if (password.matches(".*[^a-zA-Z0-9].*")) R += 32;
+
+        double entropyValue = password.length() * (Math.log(R) / Math.log(2));
+
+        if (entropyValue < 75) {
+            response.setSuccess(false);
+            response.setMessage("Le mot de passe est trop faible.");
+        } else {
+            response.setSuccess(true);
+            response.setMessage("Le mot de passe est suffisamment fort.");
+        }
+
         return response;
     }
 }
