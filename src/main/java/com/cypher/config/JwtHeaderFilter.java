@@ -41,7 +41,7 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
                 List<GrantedAuthority> authorities = new ArrayList<>();
 
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    jwt.getUserId(),
+                    jwt.getUsername(),
                     null,
                     authorities
                 );

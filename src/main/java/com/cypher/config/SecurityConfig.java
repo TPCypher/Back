@@ -13,7 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true) // Active les annotations @PreAuthorize
 public class SecurityConfig {
 
     @Bean // Configuration des accès (Authorization)

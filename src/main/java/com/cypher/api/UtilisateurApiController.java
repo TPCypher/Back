@@ -27,7 +27,7 @@ import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/api/utilisateur")
-@CrossOrigin(origins = {"front.localhost", "http://localhost:3000"})
+@CrossOrigin(origins = { "front.localhost", "http://localhost:3000" })
 @RequiredArgsConstructor
 @Log4j2
 public class UtilisateurApiController {
@@ -40,28 +40,30 @@ public class UtilisateurApiController {
     public AuthResponse auth(@Valid @RequestBody AuthRequest request) {
         try {
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(),
+                    request.getPassword());
 
             authentication = this.authenticationManager.authenticate(authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String token = JwtUtil.generate(this.repository.findByUsername(request.getUsername()).orElseThrow(UtilisateurNotFoundException::new));
+            String token = JwtUtil.generate(this.repository.findByUsername(request.getUsername())
+                    .orElseThrow(UtilisateurNotFoundException::new));
 
             log.debug("Token *** généré!");
 
-         return AuthResponse.builder()
-                .success(true)
-                .token(token)
-                .build()
-            ;
+            return AuthResponse.builder()
+                    .success(true)
+                    .message("Authentification réussie.")
+                    .token(token)
+                    .build();
         }
 
         catch (BadCredentialsException e) {
             return AuthResponse.builder()
-                .success(false)
-                .build()
-            ;
+                    .success(false)
+                    .message("Échec de l'authentification.")
+                    .build();
         }
     }
 
@@ -77,18 +79,18 @@ public class UtilisateurApiController {
         EntropyResponse entropy = this.isPasswordStrong(request.getPassword());
         if (!entropy.isSuccess()) {
             return AuthResponse.builder()
-                .success(false)
-                .message(entropy.getMessage())
-                .build();
+                    .success(false)
+                    .message(entropy.getMessage())
+                    .build();
         }
         user.setPassword(this.passwordEncoder.encode(request.getPassword()));
 
         this.repository.save(user);
 
         return AuthResponse.builder()
-            .success(true)
-            .message("Utilisateur créé avec succès.")
-            .build();
+                .success(true)
+                .message("Utilisateur créé avec succès.")
+                .build();
     }
 
     @GetMapping("/get")
@@ -99,7 +101,6 @@ public class UtilisateurApiController {
         User user = this.repository.findById(userid).orElseThrow(UtilisateurNotFoundException::new);
         return this.convertInfo(user);
     }
-
 
     private UserResponse convertInfo(User user) {
         UserResponse response = UserResponse.builder().build();
@@ -115,13 +116,17 @@ public class UtilisateurApiController {
             response.setSuccess(false);
             response.setMessage("Le mot de passe est trop faible.");
             return response;
-        } 
+        }
 
         int R = 0;
-        if (password.matches(".*[a-z].*")) R += 26;
-        if (password.matches(".*[A-Z].*")) R += 26;
-        if (password.matches(".*[0-9].*")) R += 10;
-        if (password.matches(".*[^a-zA-Z0-9].*")) R += 32;
+        if (password.matches(".*[a-z].*"))
+            R += 26;
+        if (password.matches(".*[A-Z].*"))
+            R += 26;
+        if (password.matches(".*[0-9].*"))
+            R += 10;
+        if (password.matches(".*[^a-zA-Z0-9].*"))
+            R += 32;
 
         double entropyValue = password.length() * (Math.log(R) / Math.log(2));
 
