@@ -17,13 +17,13 @@ public class JpaUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
-       User utilisateur = userRepository.findByUsername(username).orElse(null);
+    public UserDetails loadUserByUsername(String email) {
+       User utilisateur = userRepository.findByEmail(email).orElse(null);
 
         if (utilisateur == null) {
             throw new RuntimeException("Utilisateur inconnu");
         }
 
-        return org.springframework.security.core.userdetails.User.withUsername(username).password(utilisateur.getPassword()).build();
+        return org.springframework.security.core.userdetails.User.withUsername(email).password(utilisateur.getPassword()).build();
     }
 }

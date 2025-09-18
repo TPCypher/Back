@@ -40,14 +40,14 @@ public class UtilisateurApiController {
     public AuthResponse auth(@Valid @RequestBody AuthRequest request) {
         try {
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(),
+            Authentication authentication = new UsernamePasswordAuthenticationToken(request.getEmail(),
                     request.getPassword());
 
             authentication = this.authenticationManager.authenticate(authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String token = JwtUtil.generate(this.repository.findByUsername(request.getUsername())
+            String token = JwtUtil.generate(this.repository.findByEmail(request.getEmail())
                     .orElseThrow(UtilisateurNotFoundException::new));
 
             log.debug("Token *** généré!");
@@ -73,8 +73,8 @@ public class UtilisateurApiController {
         User user = new User();
 
         BeanUtils.copyProperties(request, user);
-        if (this.repository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Le nom d'utilisateur est déjà pris.");
+        if (this.repository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("L'email est déjà pris.");
         }
         EntropyResponse entropy = this.isPasswordStrong(request.getPassword());
         if (!entropy.isSuccess()) {
