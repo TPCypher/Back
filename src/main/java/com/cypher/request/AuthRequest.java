@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 public class AuthRequest {
     @NotBlank
-    private String username;
+    private String email;
 
     @NotBlank
     @Size(min = 2)
