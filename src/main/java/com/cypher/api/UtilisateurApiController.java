@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import com.cypher.config.JwtUtil;
+import com.cypher.exception.UtilisateurAlreadyExistException;
 import com.cypher.exception.UtilisateurNotFoundException;
 import com.cypher.model.User;
 import com.cypher.repository.UserRepository;
@@ -74,7 +75,10 @@ public class UtilisateurApiController {
 
         BeanUtils.copyProperties(request, user);
         if (this.repository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("L'email est déjà pris.");
+            throw new UtilisateurAlreadyExistException();
+        }
+        if (this.repository.findByEmail(user.getUsername()).isPresent()) {
+            throw new UtilisateurAlreadyExistException();
         }
         EntropyResponse entropy = this.isPasswordStrong(request.getPassword());
         if (!entropy.isSuccess()) {
@@ -112,25 +116,30 @@ public class UtilisateurApiController {
 
         EntropyResponse response = EntropyResponse.builder().build();
 
-        if (password == null || password.isEmpty()) {
+        if (password == null || password.isEmpty() || password.length() < 12) {
             response.setSuccess(false);
             response.setMessage("Le mot de passe est trop faible.");
             return response;
         }
 
         int R = 0;
+        // Calcul des minuscules
         if (password.matches(".*[a-z].*"))
             R += 26;
+        // Calcul des majuscules
         if (password.matches(".*[A-Z].*"))
             R += 26;
+        // Calcul des chiffres
         if (password.matches(".*[0-9].*"))
             R += 10;
+        // Calcul des caractères spéciaux
         if (password.matches(".*[^a-zA-Z0-9].*"))
             R += 32;
 
+        // Calcul de l'entropie
         double entropyValue = password.length() * (Math.log(R) / Math.log(2));
 
-        if (entropyValue < 75) {
+        if (entropyValue < 100) {
             response.setSuccess(false);
             response.setMessage("Le mot de passe est trop faible.");
         } else {
