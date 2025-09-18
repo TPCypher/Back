@@ -29,7 +29,7 @@ import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/api/utilisateur")
-@CrossOrigin(origins = { "front.localhost", "http://localhost:3000" })
+@CrossOrigin(origins = { "http://front.localhost", "http://localhost:3000" })
 @RequiredArgsConstructor
 @Log4j2
 public class UtilisateurApiController {
