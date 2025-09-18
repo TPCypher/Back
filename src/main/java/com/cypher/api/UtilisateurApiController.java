@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import com.cypher.config.JwtUtil;
+import com.cypher.exception.EntropyTooLowException;
 import com.cypher.exception.UtilisateurAlreadyExistException;
 import com.cypher.exception.UtilisateurNotFoundException;
 import com.cypher.model.User;
@@ -81,6 +82,9 @@ public class UtilisateurApiController {
             throw new UtilisateurAlreadyExistException();
         }
         EntropyResponse entropy = this.isPasswordStrong(request.getPassword());
+        if (!entropy.isSuccess()) {
+            throw new EntropyTooLowException();
+        }
         if (!entropy.isSuccess()) {
             return AuthResponse.builder()
                     .success(false)
