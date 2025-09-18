@@ -103,9 +103,8 @@ public class UtilisateurApiController {
     @GetMapping("/get")
     @PreAuthorize("isAuthenticated()")
     public UserResponse get() {
-        String userid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println("utilisateurid: " + userid);
-        User user = this.repository.findById(userid).orElseThrow(UtilisateurNotFoundException::new);
+        String userUsername = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = this.repository.findByUsername(userUsername).orElseThrow(UtilisateurNotFoundException::new);
         return this.convertInfo(user);
     }
 
